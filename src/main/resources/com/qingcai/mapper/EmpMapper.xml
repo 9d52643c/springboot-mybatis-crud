@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qingcai.mapper.EmpMapper">
+
+    <!--    定义可重用的sql片段-->
+    <sql id="commonSelect">
+        select id, username, password, name, gender, image, job, entrydate, dept_id, create_time, update_time
+        from mybatis.emp
+    </sql>
+
+    <update id="update2">
+        update mybatis.emp
+        <!-- 动态在行首插入set关键字，并会删除额外逗号。 用在update语句中-->
+        <set>
+            <if test="username != null">username = #{username},</if>
+            <if test="name != null"> name = #{name},</if>
+            <if test="gender != null"> gender = #{gender},</if>
+            <if test="image != null"> image = #{image},</if>
+            <if test="job != null"> job = #{job},</if>
+            <if test="entrydate != null"> entrydate = #{entrydate},</if>
+            <if test="deptId != null"> dept_id = #{deptId},</if>
+            <if test="updateTime != null"> update_time = #{updateTime}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--    resultType：单条记录所封装的类型-->
+    <select id="list" resultType="com.qingcai.pojo.Emp">
+        /*通过属性refid，指定包含的sql片段*/
+        <include refid="commonSelect"/>
+
+        <!-- 动态SQL-->
+        <where>
+            <if test="name != null">
+                name like concat('%', #{name}, '%')
+            </if>
+            <if test="gender != null">
+                and gender = #{gender}
+            </if>
+            <if test="begin != null and end != null">
+                and entrydate between #{begin} and #{end}
+            </if>
+        </where>
+        order by update_time desc
+
+    </select>
+
+    <!--    批量删除员工-->
+    <!--
+            collection : 遍历的集合
+            item : 遍历出来的元素
+            separator : 分隔符
+            open : 遍历开始前拼接的SQL字段
+            close : 遍历结束后拼接的SQL字段
+    -->
+    <delete id="deleteByIds">
+        delete from mybatis.emp where id in
+            <foreach collection="ids" item="id" separator="," open="(" close=")">
+                #{id}
+            </foreach>
+    </delete>
+
+</mapper>
+
+<!--
+    使用注解来映射简单语句会使代码显得更加简洁，但对于稍微复杂一点的语句，Java 注解不仅力不从心，
+    还会让你本就复杂的 SQL 语句更加混乱不堪。 因此，如果你需要做一些很复杂的操作，最好用 XML 来映射语句。
+
+    选择何种方式来配置映射，以及认为是否应该要统一映射语句定义的形式，完全取决于你和你的团队。
+    换句话说，永远不要拘泥于一种方式，你可以很轻松的在基于注解和 XML 的语句映射方式间自由移植和切换。
+-->
+<!--            Mybatis中文网
+    https://mybatis.net.cn/getting-started.html
+-->
